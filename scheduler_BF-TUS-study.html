@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TUS scheduling preferences</title>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #111111;
+      --muted: #666666;
+      --line: #222222;
+      --light-line: #bbbbbb;
+      --selected: #dff3e8;
+      --selected-border: #227a4d;
+      --slot: #fff2a8;
+      --shadow-strong: 0 18px 42px rgba(0, 0, 0, .20);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overscroll-behavior: none;
+    }
+
+    .app {
+      width: min(100%, 840px);
+      margin: 0 auto;
+      padding: 18px 10px 32px;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(1.55rem, 6vw, 2.15rem);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    .calendar-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table.calendar {
+      width: 100%;
+      min-width: 620px;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: white;
+    }
+
+    .calendar th,
+    .calendar td {
+      border: 1px solid var(--line);
+      vertical-align: top;
+      padding: 5px;
+    }
+
+    .calendar th {
+      height: 30px;
+      text-align: center;
+      font-size: .82rem;
+      font-weight: 700;
+      background: #eeeeee;
+    }
+
+    .calendar .cw-head,
+    .calendar .cw-cell {
+      width: 42px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: .75rem;
+      font-weight: 700;
+      background: #eeeeee;
+    }
+
+    .calendar td { height: 88px; }
+
+    .day-number {
+      font-size: .72rem;
+      font-weight: 700;
+      color: #444444;
+      margin-bottom: 4px;
+    }
+
+    .slot-list { display: grid; gap: 4px; }
+
+    .slot-btn {
+      width: 100%;
+      border: 1px solid var(--light-line);
+      border-radius: 0;
+      background: white;
+      color: #111111;
+      padding: 5px 2px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 650;
+      font-size: .72rem;
+      line-height: 1.05;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .slot-btn:active { transform: scale(.99); }
+
+    .slot-btn.selected {
+      background: var(--selected);
+      border-color: var(--selected-border);
+      outline: 1px solid var(--selected-border);
+    }
+
+    .ranking-section { margin-top: 12px; }
+
+    .status-text {
+      margin: 0 0 14px;
+      font-size: 1.55rem;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      color: var(--muted);
+    }
+
+    .rank-ui[hidden] { display: none; }
+
+    .rank-instruction {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .stack { min-height: 30px; }
+
+    .rank-card,
+    .placeholder {
+      min-height: 76px;
+      margin: 0 0 8px;
+    }
+
+    .rank-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid #555555;
+      background: white;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      transition: transform 180ms cubic-bezier(.2, .8, .2, 1), box-shadow .16s ease;
+      will-change: transform;
+    }
+
+    .rank-card:active { cursor: grabbing; }
+
+    .rank-card.dragging {
+      position: fixed;
+      z-index: 999;
+      margin: 0;
+      pointer-events: none;
+      cursor: grabbing;
+      box-shadow: var(--shadow-strong);
+      transform: scale(1.015);
+      transition: none;
+    }
+
+    .placeholder {
+      display: grid;
+      place-items: center;
+      background: var(--slot);
+      border: 2px dashed #444444;
+      color: rgba(0,0,0,.55);
+      font-weight: 700;
+      transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .placeholder::after { content: "drop here"; }
+
+    .left {
+      display: grid;
+      gap: 6px;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .rank {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #eeeeee;
+      border: 1px solid #777777;
+      font-weight: 700;
+      font-size: .9rem;
+      color: #111111;
+    }
+
+    .move-controls { display: grid; gap: 4px; justify-items: center; }
+
+    .move-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #777777;
+      border-radius: 0;
+      background: #eeeeee;
+      color: #111111;
+      font-weight: 700;
+      font-size: .95rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .move-btn:disabled { opacity: .3; cursor: default; }
+
+    .combo-main { min-width: 0; }
+
+    .combo-id {
+      font-size: .98rem;
+      font-weight: 750;
+      margin-bottom: 3px;
+    }
+
+    .combo-detail {
+      display: grid;
+      gap: 2px;
+      font-size: .86rem;
+      color: #222222;
+      line-height: 1.22;
+    }
+
+    .combo-detail div strong { color: #111111; }
+
+    #copyBtn,
+    #emailBtn {
+      width: 100%;
+      max-width: 360px;
+      margin-top: 8px;
+      border: 1px solid #111111;
+      border-radius: 0;
+      padding: 12px 16px;
+      font-size: .98rem;
+      font-weight: 750;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      background: #111111;
+      color: white;
+    }
+
+    #copyBtn.copied {
+      background: #227a4d;
+      border-color: #227a4d;
+    }
+
+    #emailBtn {
+      background: white;
+      color: #111111;
+    }
+
+    #emailBtn[hidden] {
+      display: none;
+    }
+
+    .manual-copy {
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid #999999;
+      background: white;
+    }
+
+    .manual-copy[hidden] { display: none; }
+
+    .manual-copy p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.3;
+    }
+
+    #manualText {
+      width: 100%;
+      min-height: 120px;
+      resize: vertical;
+      border: 1px solid #999999;
+      border-radius: 0;
+      padding: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .86rem;
+    }
+
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(12px);
+      background: #111111;
+      color: white;
+      padding: 10px 14px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 560px) {
+      .app { padding-left: 8px; padding-right: 8px; }
+      table.calendar { min-width: 500px; }
+      .calendar th, .calendar td { padding: 3px; }
+      .calendar .cw-head, .calendar .cw-cell { width: 32px; font-size: .66rem; }
+      .calendar th { font-size: .68rem; height: 26px; }
+      .calendar td { height: 78px; }
+      .day-number { font-size: .66rem; margin-bottom: 3px; }
+      .slot-btn { font-size: .61rem; padding: 5px 1px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <h1>click ALL slots available to you:</h1>
+
+    <div class="calendar-wrap">
+      <table class="calendar" aria-label="Available appointment slots">
+        <thead id="calendarHead"></thead>
+        <tbody id="calendarBody"></tbody>
+      </table>
+    </div>
+
+    <section class="ranking-section">
+      <div id="rankingInfo" class="status-text">Please try to select more slots.</div>
+
+      <div id="rankUi" class="rank-ui" hidden>
+        <p id="rankInstruction" class="rank-instruction"></p>
+        <div id="ranked" class="stack" aria-label="Ranked appointment pair options"></div>
+        <button id="copyBtn" type="button">Copy screenshot</button>
+        <button id="emailBtn" type="button" hidden>Open email with result</button>
+      </div>
+
+      <div id="manualCopy" class="manual-copy" hidden>
+        <p>Copy failed. Please copy this text manually, or send a screenshot.</p>
+        <textarea id="manualText" readonly></textarea>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite">Copied — now paste it into your message</div>
+
+  <script>
+    const CALENDAR_YEAR = 2026;
+    const CALENDAR_WEEKS = [19, 20];
+    const SLOT_DURATION_MINUTES = 150;
+    const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    // Optional: add your email address here to show an "Email result instead" button.
+    // Example: const CONTACT_EMAIL = "your.name@university.nl";
+    const CONTACT_EMAIL = "nico.adelhoefer@donders.ru.nl";
+
+    const SLOTS = [
+
+        // MONDAY-THURSDAY
+        { id: "mon11_1", week: 20, weekday: "Mon", start: "10:00" },
+        { id: "mon11_2", week: 20, weekday: "Mon", start: "13:00" },
+        { id: "mon11_3", week: 20, weekday: "Mon", start: "20:00" },
+
+        { id: "thu14_1", week: 20, weekday: "Thu", start: "10:00" },
+        { id: "thu14_2", week: 20, weekday: "Thu", start: "13:00" },
+        { id: "thu14_3", week: 20, weekday: "Thu", start: "20:00" },
+
+        // TUESDAY-FRIDAY
+        { id: "tue12_1", week: 20, weekday: "Tue", start: "10:00" },
+        { id: "tue12_2", week: 20, weekday: "Tue", start: "13:00" },
+        { id: "tue12_3", week: 20, weekday: "Tue", start: "20:00" },
+
+        { id: "fri15_1", week: 20, weekday: "Fri", start: "10:00" },
+        { id: "fri15_2", week: 20, weekday: "Fri", start: "13:00" },
+        { id: "fri15_3", week: 20, weekday: "Fri", start: "20:00" },
+
+        // SATURDAYS
+        { id: "sat09_1", week: 19, weekday: "Sat", start: "13:00" },
+        { id: "sat09_2", week: 19, weekday: "Sat", start: "16:30" },
+        { id: "sat09_3", week: 19, weekday: "Sat", start: "20:00" },
+  
+        { id: "sat16_1", week: 20, weekday: "Sat", start: "13:00" },
+        { id: "sat16_2", week: 20, weekday: "Sat", start: "16:30" },
+        { id: "sat16_3", week: 20, weekday: "Sat", start: "20:00" },
+  
+        // SUNDAYS
+        { id: "sun10_1", week: 19, weekday: "Sun", start: "9:00"  },
+        { id: "sun10_2", week: 19, weekday: "Sun", start: "12:00" },
+        { id: "sun10_3", week: 19, weekday: "Sun", start: "15:00" },
+        { id: "sun10_4", week: 19, weekday: "Sun", start: "18:00" },
+  
+        { id: "sun17_1", week: 20, weekday: "Sun", start: "9:00"  },
+        { id: "sun17_2", week: 20, weekday: "Sun", start: "12:00" },
+        { id: "sun17_3", week: 20, weekday: "Sun", start: "15:00" },
+        { id: "sun17_4", week: 20, weekday: "Sun", start: "18:00" },
+      
+      
+    //   { id: "s1",  week: 19, weekday: "Tue", start: "10:00" },
+    //   { id: "s2",  week: 19, weekday: "Thu", start: "10:00" },
+    //   { id: "s3",  week: 19, weekday: "Tue", start: "13:00" },
+    //   { id: "s4",  week: 19, weekday: "Thu", start: "13:00" },
+    //   { id: "s5",  week: 20, weekday: "Wed", start: "09:00" },
+    //   { id: "s6",  week: 20, weekday: "Fri", start: "09:00" },
+    //   { id: "s7",  week: 20, weekday: "Wed", start: "12:00" },
+    //   { id: "s8",  week: 20, weekday: "Fri", start: "12:00" },
+    //   { id: "s9",  week: 20, weekday: "Sat", start: "10:00" },
+    //   { id: "s10", week: 20, weekday: "Sun", start: "10:00" }
+    ];
+
+    const COMBOS = [
+
+      { id: "monthu_1", a: "mon11_1",  b: "thu14_1"  },
+      { id: "monthu_2", a: "mon11_2",  b: "thu14_2"  },
+      { id: "monthu_3", a: "mon11_3",  b: "thu14_3"  },
+
+      { id: "tuefri_1", a: "tue12_1",  b: "fri15_1"  },
+      { id: "tuefri_2", a: "tue12_2",  b: "fri15_2"  },
+      { id: "tuefri_3", a: "tue12_3",  b: "fri15_3"  },
+
+      { id: "sat_1", a: "sat09_1",  b: "sat16_1"  },
+      { id: "sat_2", a: "sat09_2",  b: "sat16_2"  },
+      { id: "sat_3", a: "sat09_3",  b: "sat16_3"  },
+
+      { id: "sun_1", a: "sun10_1",  b: "sun17_1"  },
+      { id: "sun_2", a: "sun10_2",  b: "sun17_2"  },
+      { id: "sun_3", a: "sun10_3",  b: "sun17_3"  },
+      { id: "sun_4", a: "sun10_4",  b: "sun17_4"  },
+
+    //   { id: "A", a: "s1",  b: "s2"  },
+    //   { id: "B", a: "s3",  b: "s4"  },
+    //   { id: "C", a: "s5",  b: "s6"  },
+    //   { id: "D", a: "s7",  b: "s8"  },
+    //   { id: "E", a: "s9",  b: "s10" }
+    ];
+
+    const SWAP_HYSTERESIS_PX = 8;
+    const SWAP_COOLDOWN_MS = 70;
+
+    const calendarHead = document.getElementById("calendarHead");
+    const calendarBody = document.getElementById("calendarBody");
+    const rankingInfo = document.getElementById("rankingInfo");
+    const rankUi = document.getElementById("rankUi");
+    const rankInstruction = document.getElementById("rankInstruction");
+    const ranked = document.getElementById("ranked");
+    const copyBtn = document.getElementById("copyBtn");
+    const emailBtn = document.getElementById("emailBtn");
+    const manualCopy = document.getElementById("manualCopy");
+    const manualText = document.getElementById("manualText");
+    const toast = document.getElementById("toast");
+
+    const selectedSlots = new Set();
+    let visibleCombos = [];
+    let drag = null;
+    let placeholder = null;
+
+    function renderCalendar() {
+      calendarHead.innerHTML = "";
+      calendarBody.innerHTML = "";
+
+      const headRow = document.createElement("tr");
+      const cwHead = document.createElement("th");
+      cwHead.className = "cw-head";
+      cwHead.textContent = "CW";
+      headRow.appendChild(cwHead);
+
+      WEEKDAYS.forEach(day => {
+        const th = document.createElement("th");
+        th.textContent = day;
+        headRow.appendChild(th);
+      });
+      calendarHead.appendChild(headRow);
+
+      CALENDAR_WEEKS.forEach(week => {
+        const row = document.createElement("tr");
+        const cwCell = document.createElement("td");
+        cwCell.className = "cw-cell";
+        cwCell.textContent = week;
+        row.appendChild(cwCell);
+
+        WEEKDAYS.forEach(weekday => {
+          const date = dateFromISOWeek(CALENDAR_YEAR, week, weekday);
+          const cell = document.createElement("td");
+
+          const dayNumber = document.createElement("div");
+          dayNumber.className = "day-number";
+          dayNumber.textContent = date.getDate();
+          cell.appendChild(dayNumber);
+
+          const slotList = document.createElement("div");
+          slotList.className = "slot-list";
+
+          const slotsHere = SLOTS
+            .filter(slot => slot.week === week && slot.weekday === weekday)
+            .sort((a, b) => a.start.localeCompare(b.start));
+
+          slotsHere.forEach(slot => {
+            const btn = document.createElement("button");
+            btn.className = "slot-btn";
+            btn.type = "button";
+            btn.dataset.id = slot.id;
+            btn.textContent = `${slot.start}–${endTime(slot.start)}`;
+
+            if (selectedSlots.has(slot.id)) btn.classList.add("selected");
+
+            btn.addEventListener("click", () => {
+              if (selectedSlots.has(slot.id)) {
+                selectedSlots.delete(slot.id);
+                btn.classList.remove("selected");
+              } else {
+                selectedSlots.add(slot.id);
+                btn.classList.add("selected");
+              }
+              updateRankingLive();
+            });
+
+            slotList.appendChild(btn);
+          });
+
+          cell.appendChild(slotList);
+          row.appendChild(cell);
+        });
+
+        calendarBody.appendChild(row);
+      });
+
+      updateRankingLive();
+    }
+
+    function updateRankingLive() {
+      const previousOrder = getRankedCombos().map(combo => combo.id);
+      const possible = COMBOS
+        .filter(combo => selectedSlots.has(combo.a) && selectedSlots.has(combo.b))
+        .map(combo => ({ ...combo, first: slotById(combo.a), second: slotById(combo.b) }));
+
+      visibleCombos = sortCombosPreservingOrder(possible, previousOrder);
+      renderRanking();
+    }
+
+    function sortCombosPreservingOrder(combos, previousOrder) {
+      const originalOrder = COMBOS.map(combo => combo.id);
+      return combos.slice().sort((a, b) => {
+        const aPrev = previousOrder.indexOf(a.id);
+        const bPrev = previousOrder.indexOf(b.id);
+        if (aPrev !== -1 && bPrev !== -1) return aPrev - bPrev;
+        if (aPrev !== -1) return -1;
+        if (bPrev !== -1) return 1;
+        return originalOrder.indexOf(a.id) - originalOrder.indexOf(b.id);
+      });
+    }
+
+    function renderRanking() {
+      ranked.innerHTML = "";
+      manualCopy.hidden = true;
+
+      resetCopyButton();
+
+      if (visibleCombos.length === 0) {
+        rankingInfo.textContent = "Please try to select more slots.";
+        rankUi.hidden = true;
+        emailBtn.hidden = true;
+        return;
+      }
+
+    //   rankingInfo.textContent = `${visibleCombos.length} possible session pair${visibleCombos.length === 1 ? "" : "s"} selected.`;
+      rankingInfo.textContent = ``;
+      rankUi.hidden = false;
+      emailBtn.hidden = true;
+      rankInstruction.textContent = visibleCombos.length > 1
+        ? "please rank order the options, if you wish (use arrow buttons or drag/drop)"
+        : "(only) one possible option found - are there more slots where you are available?";
+      visibleCombos.forEach(combo => ranked.appendChild(createRankCard(combo)));
+      updateRanks();
+    }
+
+    function createRankCard(combo) {
+      const card = document.createElement("article");
+      card.className = "rank-card";
+      card.dataset.id = combo.id;
+      card.innerHTML = `
+        <div class="rank" aria-hidden="true"></div>
+        <div class="combo-main">
+          <div class="combo-detail">
+            <div> ${escapeHtml(slotLabel(combo.first))} <strong>   AND   </strong> ${escapeHtml(slotLabel(combo.second))}</div>
+          </div>
+        </div>
+        <div class="move-controls" aria-label="Move option ${escapeHtml(combo.id)}">
+          <button class="move-btn move-up" type="button" aria-label="Move option ${escapeHtml(combo.id)} up">↑</button>
+          <button class="move-btn move-down" type="button" aria-label="Move option ${escapeHtml(combo.id)} down">↓</button>
+        </div>`;
+
+      if ("PointerEvent" in window) card.addEventListener("pointerdown", startDrag);
+
+      card.querySelector(".move-up").addEventListener("click", event => {
+        event.stopPropagation();
+        moveCardByButton(card, -1);
+      });
+      card.querySelector(".move-down").addEventListener("click", event => {
+        event.stopPropagation();
+        moveCardByButton(card, 1);
+      });
+      return card;
+    }
+
+    function moveCardByButton(card, direction) {
+      if (drag) return;
+      const cards = [...ranked.querySelectorAll(".rank-card")];
+      const index = cards.indexOf(card);
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= cards.length) return;
+
+      animateLayoutChange(() => {
+        if (direction < 0) ranked.insertBefore(card, cards[targetIndex]);
+        else ranked.insertBefore(cards[targetIndex], card);
+      });
+      syncVisibleCombosToDom();
+      updateRanks();
+    }
+
+    function startDrag(event) {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (event.target.closest(".move-controls")) return;
+
+      const card = event.currentTarget;
+      const rect = card.getBoundingClientRect();
+      event.preventDefault();
+
+      placeholder = document.createElement("div");
+      placeholder.className = "placeholder";
+      placeholder.style.height = `${rect.height}px`;
+      ranked.insertBefore(placeholder, card);
+
+      drag = {
+        card,
+        pointerId: event.pointerId,
+        offsetX: event.clientX - rect.left,
+        offsetY: event.clientY - rect.top,
+        width: rect.width,
+        height: rect.height,
+        lastTop: rect.top,
+        lastSwapAt: 0
+      };
+
+      card.classList.add("dragging");
+      card.style.width = `${rect.width}px`;
+      card.style.left = `${rect.left}px`;
+      card.style.top = `${rect.top}px`;
+
+      card.setPointerCapture(event.pointerId);
+      card.addEventListener("pointermove", onDragMove);
+      card.addEventListener("pointerup", finishDrag);
+      card.addEventListener("pointercancel", finishDrag);
+      updateRanks();
+    }
+
+    function onDragMove(event) {
+      if (!drag) return;
+      event.preventDefault();
+      const left = event.clientX - drag.offsetX;
+      const top = event.clientY - drag.offsetY;
+      const dy = top - drag.lastTop;
+      drag.card.style.left = `${left}px`;
+      drag.card.style.top = `${top}px`;
+      autoScroll(event.clientY);
+      if (Math.abs(dy) >= 1) {
+        const direction = dy > 0 ? "down" : "up";
+        movePlaceholderByCardEdges(top, direction);
+        drag.lastTop = top;
+      }
+    }
+
+    function movePlaceholderByCardEdges(dragTop, direction) {
+      if (!placeholder || !drag) return;
+      const now = performance.now();
+      if (now - drag.lastSwapAt < SWAP_COOLDOWN_MS) return;
+      const dragBottom = dragTop + drag.height;
+
+      if (direction === "up") {
+        const prev = previousCard(placeholder);
+        if (!prev) return;
+        const rect = prev.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        if (dragTop < midpoint - SWAP_HYSTERESIS_PX) {
+          animateLayoutChange(() => ranked.insertBefore(placeholder, prev));
+          drag.lastSwapAt = now;
+          updateRanks();
+        }
+        return;
+      }
+
+      if (direction === "down") {
+        const next = nextCard(placeholder);
+        if (!next) return;
+        const rect = next.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        if (dragBottom > midpoint + SWAP_HYSTERESIS_PX) {
+          animateLayoutChange(() => ranked.insertBefore(placeholder, next.nextSibling));
+          drag.lastSwapAt = now;
+          updateRanks();
+        }
+      }
+    }
+
+    function previousCard(element) {
+      let node = element.previousElementSibling;
+      while (node && !node.classList.contains("rank-card")) node = node.previousElementSibling;
+      return node;
+    }
+
+    function nextCard(element) {
+      let node = element.nextElementSibling;
+      while (node && !node.classList.contains("rank-card")) node = node.nextElementSibling;
+      return node;
+    }
+
+    function finishDrag() {
+      if (!drag) return;
+      const card = drag.card;
+      try { card.releasePointerCapture(drag.pointerId); } catch {}
+      card.removeEventListener("pointermove", onDragMove);
+      card.removeEventListener("pointerup", finishDrag);
+      card.removeEventListener("pointercancel", finishDrag);
+
+      animateLayoutChange(() => {
+        ranked.insertBefore(card, placeholder);
+        placeholder.remove();
+      });
+
+      card.classList.remove("dragging");
+      card.style.width = "";
+      card.style.left = "";
+      card.style.top = "";
+      drag = null;
+      placeholder = null;
+      syncVisibleCombosToDom();
+      updateRanks();
+    }
+
+    function animateLayoutChange(changeDom) {
+      const elements = [...ranked.querySelectorAll(".rank-card:not(.dragging), .placeholder")];
+      const first = new Map(elements.map(el => [el, el.getBoundingClientRect()]));
+      changeDom();
+      for (const el of elements) {
+        const start = first.get(el);
+        const end = el.getBoundingClientRect();
+        if (!start || !end) continue;
+        const dx = start.left - end.left;
+        const dy = start.top - end.top;
+        if (!dx && !dy) continue;
+        el.style.transition = "none";
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 180ms cubic-bezier(.2, .8, .2, 1)";
+          el.style.transform = "";
+        });
+      }
+    }
+
+    function autoScroll(clientY) {
+      const edge = 80;
+      const speed = 11;
+      if (clientY < edge) window.scrollBy(0, -speed);
+      else if (clientY > window.innerHeight - edge) window.scrollBy(0, speed);
+    }
+
+    function updateRanks() {
+      const cards = [...ranked.querySelectorAll(".rank-card:not(.dragging)")];
+      cards.forEach((card, index) => {
+        card.querySelector(".rank").textContent = index + 1;
+        const up = card.querySelector(".move-up");
+        const down = card.querySelector(".move-down");
+        if (up) up.disabled = index === 0;
+        if (down) down.disabled = index === cards.length - 1;
+      });
+    }
+
+    function syncVisibleCombosToDom() {
+      const order = [...ranked.querySelectorAll(".rank-card")]
+        .filter(card => !card.classList.contains("dragging"))
+        .map(card => card.dataset.id);
+      visibleCombos = order.map(id => visibleCombos.find(combo => combo.id === id)).filter(Boolean);
+    }
+
+    function slotById(id) { return SLOTS.find(slot => slot.id === id); }
+
+    function dateFromISOWeek(year, week, weekdayName) {
+      const weekdayIndex = WEEKDAYS.indexOf(weekdayName) + 1;
+      const simple = new Date(Date.UTC(year, 0, 4));
+      const dayOfWeek = simple.getUTCDay() || 7;
+      const mondayWeek1 = new Date(simple);
+      mondayWeek1.setUTCDate(simple.getUTCDate() - dayOfWeek + 1);
+      const result = new Date(mondayWeek1);
+      result.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7 + (weekdayIndex - 1));
+      return result;
+    }
+
+    function endTime(start) { return addMinutesToTime(start, SLOT_DURATION_MINUTES); }
+
+    function addMinutesToTime(time, minutesToAdd) {
+      const parts = time.split(":").map(Number);
+      const total = parts[0] * 60 + parts[1] + minutesToAdd;
+      const hours = Math.floor(total / 60) % 24;
+      const minutes = total % 60;
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    }
+
+    function slotLabel(slot) {
+      if (!slot) return "";
+      const date = dateFromISOWeek(CALENDAR_YEAR, slot.week, slot.weekday);
+      const monthName = date.toLocaleString(undefined, { month: "short" });
+      return `${slot.weekday} ${date.getDate()} ${monthName} · ${slot.start}–${endTime(slot.start)}`;
+    }
+
+    function getRankedCombos() {
+      return [...ranked.querySelectorAll(".rank-card")]
+        .filter(card => !card.classList.contains("dragging"))
+        .map(card => visibleCombos.find(item => item.id === card.dataset.id))
+        .filter(Boolean);
+    }
+
+    function getResultText() {
+      const selected = [...selectedSlots]
+        .map(id => slotById(id))
+        .filter(Boolean)
+        .sort((a, b) => slotLabel(a).localeCompare(slotLabel(b)));
+      const rankedCombos = getRankedCombos();
+      return [
+        "Selected single blocks:",
+        ...(selected.length ? selected.map(slot => `- ${slot.id}: ${slotLabel(slot)}`) : ["none"]),
+        "",
+        "Ranking of linked pairs:",
+        ...(rankedCombos.length
+          ? rankedCombos.map((combo, index) => `${index + 1}. ${combo.id} (${slotLabel(combo.first)} + ${slotLabel(combo.second)})`)
+          : ["none"])
+      ].join("\n");
+    }
+
+    async function copyResult() {
+      if (drag || visibleCombos.length === 0) return;
+      const result = getResultText();
+
+      try {
+        await navigator.clipboard.writeText(result);
+        markCopied();
+      } catch {
+        fallbackCopy(result);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.left = "-9999px";
+      document.body.appendChild(area);
+      area.select();
+      let copied = false;
+      try { copied = document.execCommand("copy"); } catch {}
+      area.remove();
+      if (copied) {
+        markCopied();
+      } else {
+        manualText.value = text;
+        manualCopy.hidden = false;
+        manualText.focus();
+        manualText.select();
+        copyBtn.textContent = "Copy failed — copy the text below";
+        copyBtn.classList.remove("copied");
+
+        if (CONTACT_EMAIL.trim() !== "") {
+          emailBtn.hidden = false;
+        }
+      }
+    }
+
+    function markCopied() {
+      copyBtn.textContent = "Copied — paste into your message";
+      copyBtn.classList.add("copied");
+
+      if (CONTACT_EMAIL.trim() !== "") {
+        emailBtn.hidden = false;
+      }
+
+      clearTimeout(copyBtn._resetTimer);
+      copyBtn._resetTimer = setTimeout(resetCopyButton, 6000);
+    }
+
+    function resetCopyButton() {
+      copyBtn.textContent = "Copy screenshot";
+      copyBtn.classList.remove("copied");
+    }
+
+    function emailResult() {
+      if (visibleCombos.length === 0) return;
+
+      const subject = encodeURIComponent("TUS scheduling preferences");
+      const body = encodeURIComponent(getResultText());
+      const to = encodeURIComponent(CONTACT_EMAIL.trim());
+      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    copyBtn.addEventListener("click", copyResult);
+    emailBtn.addEventListener("click", emailResult);
+    renderCalendar();
+  </script>
+</body>
+</html>
