@@ -42,10 +42,9 @@
       letter-spacing: -0.035em;
     }
 
-    .calendar-wrap {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+    .page[hidden] { display: none; }
+
+    .calendar-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
     table.calendar {
       width: 100%;
@@ -55,8 +54,7 @@
       background: white;
     }
 
-    .calendar th,
-    .calendar td {
+    .calendar th, .calendar td {
       border: 1px solid var(--line);
       vertical-align: top;
       padding: 5px;
@@ -70,8 +68,7 @@
       background: #eeeeee;
     }
 
-    .calendar .cw-head,
-    .calendar .cw-cell {
+    .calendar .cw-head, .calendar .cw-cell {
       width: 42px;
       text-align: center;
       vertical-align: middle;
@@ -114,31 +111,60 @@
       outline: 1px solid var(--selected-border);
     }
 
-    .ranking-section { margin-top: 12px; }
+    .mobile-days { display: none; }
+
+    .mobile-day {
+      border: 1px solid var(--line);
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+
+    .mobile-day-title {
+      font-weight: 750;
+      margin-bottom: 7px;
+    }
+
+    .mobile-day .slot-list { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); }
 
     .status-text {
-      margin: 0 0 14px;
-      font-size: 1.55rem;
+      margin: 14px 0 12px;
+      font-size: 1.35rem;
       line-height: 1.08;
       letter-spacing: -0.035em;
       color: var(--muted);
     }
 
-    .rank-ui[hidden] { display: none; }
+    .actions { margin-top: 12px; }
+
+    #continueBtn, #backBtn, #copyBtn, #emailBtn {
+      width: 100%;
+      max-width: 360px;
+      margin-top: 8px;
+      border: 1px solid #111111;
+      border-radius: 0;
+      padding: 12px 16px;
+      font-size: .98rem;
+      font-weight: 750;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      background: #111111;
+      color: white;
+    }
+
+    #backBtn, #emailBtn { background: white; color: #111111; }
+    #continueBtn:disabled { opacity: .35; cursor: default; }
+    #copyBtn.copied { background: #227a4d; border-color: #227a4d; }
+    #emailBtn[hidden] { display: none; }
 
     .rank-instruction {
-      margin: 0 0 4px;
+      margin: 0 0 8px;
       font-size: 1rem;
       font-weight: 700;
     }
 
     .stack { min-height: 30px; }
 
-    .rank-card,
-    .placeholder {
-      min-height: 76px;
-      margin: 0 0 8px;
-    }
+    .rank-card, .placeholder { min-height: 76px; margin: 0 0 8px; }
 
     .rank-card {
       display: grid;
@@ -181,13 +207,6 @@
 
     .placeholder::after { content: "drop here"; }
 
-    .left {
-      display: grid;
-      gap: 6px;
-      justify-items: center;
-      align-items: center;
-    }
-
     .rank {
       width: 30px;
       height: 30px;
@@ -217,14 +236,7 @@
     }
 
     .move-btn:disabled { opacity: .3; cursor: default; }
-
     .combo-main { min-width: 0; }
-
-    .combo-id {
-      font-size: .98rem;
-      font-weight: 750;
-      margin-bottom: 3px;
-    }
 
     .combo-detail {
       display: grid;
@@ -235,36 +247,6 @@
     }
 
     .combo-detail div strong { color: #111111; }
-
-    #copyBtn,
-    #emailBtn {
-      width: 100%;
-      max-width: 360px;
-      margin-top: 8px;
-      border: 1px solid #111111;
-      border-radius: 0;
-      padding: 12px 16px;
-      font-size: .98rem;
-      font-weight: 750;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      background: #111111;
-      color: white;
-    }
-
-    #copyBtn.copied {
-      background: #227a4d;
-      border-color: #227a4d;
-    }
-
-    #emailBtn {
-      background: white;
-      color: #111111;
-    }
-
-    #emailBtn[hidden] {
-      display: none;
-    }
 
     .manual-copy {
       margin-top: 12px;
@@ -308,20 +290,14 @@
       z-index: 1000;
     }
 
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    @media (max-width: 560px) {
-      .app { padding-left: 8px; padding-right: 8px; }
-      table.calendar { min-width: 500px; }
-      .calendar th, .calendar td { padding: 3px; }
-      .calendar .cw-head, .calendar .cw-cell { width: 32px; font-size: .66rem; }
-      .calendar th { font-size: .68rem; height: 26px; }
-      .calendar td { height: 78px; }
-      .day-number { font-size: .66rem; margin-bottom: 3px; }
-      .slot-btn { font-size: .61rem; padding: 5px 1px; }
+    @media (max-width: 650px) {
+      .calendar-wrap { display: none; }
+      .mobile-days { display: block; }
+      .slot-btn { font-size: .82rem; padding: 9px 4px; }
+      .status-text { font-size: 1.15rem; }
+      #continueBtn, #backBtn, #copyBtn, #emailBtn { max-width: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -332,23 +308,33 @@
 
 <body>
   <main class="app">
-    <h1>click ALL slots available to you:</h1>
+    <section id="selectPage" class="page">
+      <h1>click ALL slots available to you:</h1>
 
-    <div class="calendar-wrap">
-      <table class="calendar" aria-label="Available appointment slots">
-        <thead id="calendarHead"></thead>
-        <tbody id="calendarBody"></tbody>
-      </table>
-    </div>
+      <div class="calendar-wrap">
+        <table class="calendar" aria-label="Available appointment slots">
+          <thead id="calendarHead"></thead>
+          <tbody id="calendarBody"></tbody>
+        </table>
+      </div>
 
-    <section class="ranking-section">
-      <div id="rankingInfo" class="status-text">Please try to select more slots.</div>
+      <div id="mobileDays" class="mobile-days"></div>
 
-      <div id="rankUi" class="rank-ui" hidden>
-        <p id="rankInstruction" class="rank-instruction"></p>
-        <div id="ranked" class="stack" aria-label="Ranked appointment pair options"></div>
-        <button id="copyBtn" type="button">Copy screenshot</button>
-        <button id="emailBtn" type="button" hidden>Open email with result</button>
+      <div id="selectionInfo" class="status-text">Please try to select more slots.</div>
+
+      <div class="actions">
+        <button id="continueBtn" type="button" disabled>Continue</button>
+      </div>
+    </section>
+
+    <section id="rankPage" class="page" hidden>
+      <p id="rankInstruction" class="rank-instruction"></p>
+      <div id="ranked" class="stack" aria-label="Ranked appointment pair options"></div>
+
+      <div class="actions">
+        <button id="backBtn" type="button">Back</button>
+        <button id="copyBtn" type="button">copy screenshot for messenger</button>
+        <button id="emailBtn" type="button" hidden>...send via email</button>
       </div>
 
       <div id="manualCopy" class="manual-copy" hidden>
@@ -358,18 +344,14 @@
     </section>
   </main>
 
-  <div id="toast" role="status" aria-live="polite">Copied — now paste it into your message</div>
+  <div id="toast" role="status" aria-live="polite">copied - now please send to Nico via messenger or...</div>
 
   <script>
     const CALENDAR_YEAR = 2026;
     const CALENDAR_WEEKS = [19, 20];
     const SLOT_DURATION_MINUTES = 150;
     const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-    // Optional: add your email address here to show an "Email result instead" button.
-    // Example: const CONTACT_EMAIL = "your.name@university.nl";
     const CONTACT_EMAIL = "nico.adelhoefer@donders.ru.nl";
-
     const SLOTS = [
 
         // MONDAY-THURSDAY
@@ -422,7 +404,6 @@
     //   { id: "s9",  week: 20, weekday: "Sat", start: "10:00" },
     //   { id: "s10", week: 20, weekday: "Sun", start: "10:00" }
     ];
-
     const COMBOS = [
 
       { id: "monthu_1", a: "mon11_1",  b: "thu14_1"  },
@@ -452,10 +433,14 @@
     const SWAP_HYSTERESIS_PX = 8;
     const SWAP_COOLDOWN_MS = 70;
 
+    const selectPage = document.getElementById("selectPage");
+    const rankPage = document.getElementById("rankPage");
     const calendarHead = document.getElementById("calendarHead");
     const calendarBody = document.getElementById("calendarBody");
-    const rankingInfo = document.getElementById("rankingInfo");
-    const rankUi = document.getElementById("rankUi");
+    const mobileDays = document.getElementById("mobileDays");
+    const selectionInfo = document.getElementById("selectionInfo");
+    const continueBtn = document.getElementById("continueBtn");
+    const backBtn = document.getElementById("backBtn");
     const rankInstruction = document.getElementById("rankInstruction");
     const ranked = document.getElementById("ranked");
     const copyBtn = document.getElementById("copyBtn");
@@ -470,6 +455,12 @@
     let placeholder = null;
 
     function renderCalendar() {
+      renderDesktopCalendar();
+      renderMobileDays();
+      updatePossibleCombos();
+    }
+
+    function renderDesktopCalendar() {
       calendarHead.innerHTML = "";
       calendarBody.innerHTML = "";
 
@@ -505,31 +496,8 @@
           const slotList = document.createElement("div");
           slotList.className = "slot-list";
 
-          const slotsHere = SLOTS
-            .filter(slot => slot.week === week && slot.weekday === weekday)
-            .sort((a, b) => a.start.localeCompare(b.start));
-
-          slotsHere.forEach(slot => {
-            const btn = document.createElement("button");
-            btn.className = "slot-btn";
-            btn.type = "button";
-            btn.dataset.id = slot.id;
-            btn.textContent = `${slot.start}–${endTime(slot.start)}`;
-
-            if (selectedSlots.has(slot.id)) btn.classList.add("selected");
-
-            btn.addEventListener("click", () => {
-              if (selectedSlots.has(slot.id)) {
-                selectedSlots.delete(slot.id);
-                btn.classList.remove("selected");
-              } else {
-                selectedSlots.add(slot.id);
-                btn.classList.add("selected");
-              }
-              updateRankingLive();
-            });
-
-            slotList.appendChild(btn);
+          getSlotsForDay(week, weekday).forEach(slot => {
+            slotList.appendChild(createSlotButton(slot));
           });
 
           cell.appendChild(slotList);
@@ -538,18 +506,86 @@
 
         calendarBody.appendChild(row);
       });
-
-      updateRankingLive();
     }
 
-    function updateRankingLive() {
+    function renderMobileDays() {
+      mobileDays.innerHTML = "";
+
+      CALENDAR_WEEKS.forEach(week => {
+        WEEKDAYS.forEach(weekday => {
+          const slotsHere = getSlotsForDay(week, weekday);
+          if (slotsHere.length === 0) return;
+
+          const date = dateFromISOWeek(CALENDAR_YEAR, week, weekday);
+          const dayBlock = document.createElement("section");
+          dayBlock.className = "mobile-day";
+
+          const title = document.createElement("div");
+          title.className = "mobile-day-title";
+          title.textContent = `${weekday} ${date.getDate()} May`;
+          dayBlock.appendChild(title);
+
+          const slotList = document.createElement("div");
+          slotList.className = "slot-list";
+
+          slotsHere.forEach(slot => slotList.appendChild(createSlotButton(slot)));
+
+          dayBlock.appendChild(slotList);
+          mobileDays.appendChild(dayBlock);
+        });
+      });
+    }
+
+    function getSlotsForDay(week, weekday) {
+      return SLOTS
+        .filter(slot => slot.week === week && slot.weekday === weekday)
+        .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+    }
+
+    function createSlotButton(slot) {
+      const btn = document.createElement("button");
+      btn.className = "slot-btn";
+      btn.type = "button";
+      btn.dataset.id = slot.id;
+      btn.textContent = `${slot.start}–${endTime(slot.start)}`;
+
+      if (selectedSlots.has(slot.id)) btn.classList.add("selected");
+
+      btn.addEventListener("click", () => {
+        if (selectedSlots.has(slot.id)) selectedSlots.delete(slot.id);
+        else selectedSlots.add(slot.id);
+        syncSlotButtonStates(slot.id);
+        updatePossibleCombos();
+      });
+
+      return btn;
+    }
+
+    function syncSlotButtonStates(slotId) {
+      const isSelected = selectedSlots.has(slotId);
+      document.querySelectorAll(`.slot-btn[data-id="${cssEscape(slotId)}"]`).forEach(btn => {
+        btn.classList.toggle("selected", isSelected);
+      });
+    }
+
+    function updatePossibleCombos() {
       const previousOrder = getRankedCombos().map(combo => combo.id);
+
       const possible = COMBOS
         .filter(combo => selectedSlots.has(combo.a) && selectedSlots.has(combo.b))
         .map(combo => ({ ...combo, first: slotById(combo.a), second: slotById(combo.b) }));
 
       visibleCombos = sortCombosPreservingOrder(possible, previousOrder);
-      renderRanking();
+
+      if (visibleCombos.length === 0) {
+        selectionInfo.textContent = "Please try to select more slots.";
+        continueBtn.disabled = true;
+      } else {
+        selectionInfo.textContent = "";
+        continueBtn.disabled = false;
+      }
+
+      if (!rankPage.hidden) renderRanking();
     }
 
     function sortCombosPreservingOrder(combos, previousOrder) {
@@ -564,26 +600,34 @@
       });
     }
 
+    function goToRanking() {
+      if (visibleCombos.length === 0) return;
+      renderRanking();
+      selectPage.hidden = true;
+      rankPage.hidden = false;
+      window.scrollTo(0, 0);
+    }
+
+    function goBack() {
+      if (drag) return;
+      rankPage.hidden = true;
+      selectPage.hidden = false;
+      manualCopy.hidden = true;
+      emailBtn.hidden = true;
+      resetCopyButton();
+      window.scrollTo(0, 0);
+    }
+
     function renderRanking() {
       ranked.innerHTML = "";
       manualCopy.hidden = true;
-
+      emailBtn.hidden = true;
       resetCopyButton();
 
-      if (visibleCombos.length === 0) {
-        rankingInfo.textContent = "Please try to select more slots.";
-        rankUi.hidden = true;
-        emailBtn.hidden = true;
-        return;
-      }
-
-    //   rankingInfo.textContent = `${visibleCombos.length} possible session pair${visibleCombos.length === 1 ? "" : "s"} selected.`;
-      rankingInfo.textContent = ``;
-      rankUi.hidden = false;
-      emailBtn.hidden = true;
       rankInstruction.textContent = visibleCombos.length > 1
         ? "please rank order the options, if you wish (use arrow buttons or drag/drop)"
         : "(only) one possible option found - are there more slots where you are available?";
+
       visibleCombos.forEach(combo => ranked.appendChild(createRankCard(combo)));
       updateRanks();
     }
@@ -809,6 +853,11 @@
       return result;
     }
 
+    function timeToMinutes(time) {
+      const parts = time.split(":").map(Number);
+      return parts[0] * 60 + parts[1];
+    }
+
     function endTime(start) { return addMinutesToTime(start, SLOT_DURATION_MINUTES); }
 
     function addMinutesToTime(time, minutesToAdd) {
@@ -883,19 +932,15 @@
         copyBtn.textContent = "Copy failed — copy the text below";
         copyBtn.classList.remove("copied");
 
-        if (CONTACT_EMAIL.trim() !== "") {
-          emailBtn.hidden = false;
-        }
+        if (CONTACT_EMAIL.trim() !== "") emailBtn.hidden = false;
       }
     }
 
     function markCopied() {
-      copyBtn.textContent = "Copied — paste into your message";
+      copyBtn.textContent = "copied - now please send to Nico via messenger or...";
       copyBtn.classList.add("copied");
 
-      if (CONTACT_EMAIL.trim() !== "") {
-        emailBtn.hidden = false;
-      }
+      if (CONTACT_EMAIL.trim() !== "") emailBtn.hidden = false;
 
       clearTimeout(copyBtn._resetTimer);
       copyBtn._resetTimer = setTimeout(resetCopyButton, 6000);
@@ -908,7 +953,6 @@
 
     function emailResult() {
       if (visibleCombos.length === 0) return;
-
       const subject = encodeURIComponent("TUS scheduling preferences");
       const body = encodeURIComponent(getResultText());
       const to = encodeURIComponent(CONTACT_EMAIL.trim());
@@ -930,6 +974,13 @@
         .replace(/'/g, "&#039;");
     }
 
+    function cssEscape(value) {
+      if (window.CSS && CSS.escape) return CSS.escape(value);
+      return String(value).replace(/["\\]/g, "\\$&");
+    }
+
+    continueBtn.addEventListener("click", goToRanking);
+    backBtn.addEventListener("click", goBack);
     copyBtn.addEventListener("click", copyResult);
     emailBtn.addEventListener("click", emailResult);
     renderCalendar();
