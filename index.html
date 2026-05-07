@@ -348,88 +348,72 @@
 
   <script>
     const CALENDAR_YEAR = 2026;
-    const CALENDAR_WEEKS = [19, 20];
+    const CALENDAR_WEEKS = [20];
     const SLOT_DURATION_MINUTES = 150;
     const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const CONTACT_EMAIL = "nico.adelhoefer@donders.ru.nl";
+
     const SLOTS = [
 
-        // MONDAY-THURSDAY
-        { id: "mon11_1", week: 20, weekday: "Mon", start: "10:00" },
-        { id: "mon11_2", week: 20, weekday: "Mon", start: "13:00" },
-        { id: "mon11_3", week: 20, weekday: "Mon", start: "20:00" },
+      // MONDAY-THURSDAY
+      { id: "mon11_1", week: 20, weekday: "Mon", start: "09:00" },
+      { id: "mon11_2", week: 20, weekday: "Mon", start: "12:30" },
+      { id: "mon11_3", week: 20, weekday: "Mon", start: "19:30" },
 
-        { id: "thu14_1", week: 20, weekday: "Thu", start: "10:00" },
-        { id: "thu14_2", week: 20, weekday: "Thu", start: "13:00" },
-        { id: "thu14_3", week: 20, weekday: "Thu", start: "20:00" },
+      { id: "thu14_1", week: 20, weekday: "Thu", start: "09:00" },
+      { id: "thu14_2", week: 20, weekday: "Thu", start: "12:30" },
+      { id: "thu14_3", week: 20, weekday: "Thu", start: "19:30" },
 
-        // TUESDAY-FRIDAY
-        { id: "tue12_1", week: 20, weekday: "Tue", start: "10:00" },
-        { id: "tue12_2", week: 20, weekday: "Tue", start: "13:00" },
-        { id: "tue12_3", week: 20, weekday: "Tue", start: "20:00" },
+      // TUESDAY-FRIDAY
+      { id: "tue12_1", week: 20, weekday: "Tue", start: "10:30" },
+      { id: "tue12_2", week: 20, weekday: "Tue", start: "16:30" },
+      { id: "tue12_3", week: 20, weekday: "Tue", start: "19:30" },
 
-        { id: "fri15_1", week: 20, weekday: "Fri", start: "10:00" },
-        { id: "fri15_2", week: 20, weekday: "Fri", start: "13:00" },
-        { id: "fri15_3", week: 20, weekday: "Fri", start: "20:00" },
+      { id: "fri15_1", week: 20, weekday: "Fri", start: "10:30" },
+      { id: "fri15_2", week: 20, weekday: "Fri", start: "16:30" },
+      { id: "fri15_3", week: 20, weekday: "Fri", start: "19:30" },
 
-        // SATURDAYS
-        { id: "sat09_1", week: 19, weekday: "Sat", start: "13:00" },
-        { id: "sat09_2", week: 19, weekday: "Sat", start: "16:30" },
-        { id: "sat09_3", week: 19, weekday: "Sat", start: "20:00" },
-  
-        { id: "sat16_1", week: 20, weekday: "Sat", start: "13:00" },
-        { id: "sat16_2", week: 20, weekday: "Sat", start: "16:30" },
-        { id: "sat16_3", week: 20, weekday: "Sat", start: "20:00" },
-  
-        // SUNDAYS
-        { id: "sun10_1", week: 19, weekday: "Sun", start: "9:00"  },
-        { id: "sun10_2", week: 19, weekday: "Sun", start: "12:00" },
-        { id: "sun10_3", week: 19, weekday: "Sun", start: "15:00" },
-        { id: "sun10_4", week: 19, weekday: "Sun", start: "18:00" },
-  
-        { id: "sun17_1", week: 20, weekday: "Sun", start: "9:00"  },
-        { id: "sun17_2", week: 20, weekday: "Sun", start: "12:00" },
-        { id: "sun17_3", week: 20, weekday: "Sun", start: "15:00" },
-        { id: "sun17_4", week: 20, weekday: "Sun", start: "18:00" },
-      
-      
-    //   { id: "s1",  week: 19, weekday: "Tue", start: "10:00" },
-    //   { id: "s2",  week: 19, weekday: "Thu", start: "10:00" },
-    //   { id: "s3",  week: 19, weekday: "Tue", start: "13:00" },
-    //   { id: "s4",  week: 19, weekday: "Thu", start: "13:00" },
-    //   { id: "s5",  week: 20, weekday: "Wed", start: "09:00" },
-    //   { id: "s6",  week: 20, weekday: "Fri", start: "09:00" },
-    //   { id: "s7",  week: 20, weekday: "Wed", start: "12:00" },
-    //   { id: "s8",  week: 20, weekday: "Fri", start: "12:00" },
-    //   { id: "s9",  week: 20, weekday: "Sat", start: "10:00" },
-    //   { id: "s10", week: 20, weekday: "Sun", start: "10:00" }
+      // WEDNESDAY-SUNDAY
+      { id: "wed13_1", week: 20, weekday: "Wed", start: "08:00" },
+      { id: "wed13_2", week: 20, weekday: "Wed", start: "11:00" },
+      { id: "wed13_3", week: 20, weekday: "Wed", start: "14:00" },
+      { id: "wed13_4", week: 20, weekday: "Wed", start: "17:00" },
+      { id: "wed13_5", week: 20, weekday: "Wed", start: "20:00" },
+
+      { id: "sun17_1", week: 20, weekday: "Sun", start: "08:00" },
+      { id: "sun17_2", week: 20, weekday: "Sun", start: "11:00" },
+      { id: "sun17_3", week: 20, weekday: "Sun", start: "14:00" },
+      { id: "sun17_4", week: 20, weekday: "Sun", start: "17:00" },
+      { id: "sun17_5", week: 20, weekday: "Sun", start: "20:00" },
+
+      // EXTRA DEADLINE PAIR
+      { id: "fri15_4", week: 20, weekday: "Fri", start: "13:30" },
+      { id: "mon18_1", week: 21, weekday: "Mon", start: "09:00" },
+
     ];
+
     const COMBOS = [
 
-      { id: "monthu_1", a: "mon11_1",  b: "thu14_1"  },
-      { id: "monthu_2", a: "mon11_2",  b: "thu14_2"  },
-      { id: "monthu_3", a: "mon11_3",  b: "thu14_3"  },
+      { id: "p01", a: "wed13_2", b: "sun17_2" },
+      { id: "p02", a: "wed13_3", b: "sun17_3" },
+      { id: "p03", a: "wed13_4", b: "sun17_4" },
+      { id: "p04", a: "wed13_5", b: "sun17_5" },
 
-      { id: "tuefri_1", a: "tue12_1",  b: "fri15_1"  },
-      { id: "tuefri_2", a: "tue12_2",  b: "fri15_2"  },
-      { id: "tuefri_3", a: "tue12_3",  b: "fri15_3"  },
+      { id: "p05", a: "mon11_1", b: "thu14_1" },
+      { id: "p06", a: "mon11_2", b: "thu14_2" },
+      { id: "p07", a: "mon11_3", b: "thu14_3" },
 
-      { id: "sat_1", a: "sat09_1",  b: "sat16_1"  },
-      { id: "sat_2", a: "sat09_2",  b: "sat16_2"  },
-      { id: "sat_3", a: "sat09_3",  b: "sat16_3"  },
+      { id: "p08", a: "wed13_1", b: "sun17_1" },
 
-      { id: "sun_1", a: "sun10_1",  b: "sun17_1"  },
-      { id: "sun_2", a: "sun10_2",  b: "sun17_2"  },
-      { id: "sun_3", a: "sun10_3",  b: "sun17_3"  },
-      { id: "sun_4", a: "sun10_4",  b: "sun17_4"  },
+      { id: "p09", a: "tue12_1", b: "fri15_1" },
+      { id: "p10", a: "tue12_2", b: "fri15_2" },
+      { id: "p11", a: "tue12_3", b: "fri15_3" },
 
-    //   { id: "A", a: "s1",  b: "s2"  },
-    //   { id: "B", a: "s3",  b: "s4"  },
-    //   { id: "C", a: "s5",  b: "s6"  },
-    //   { id: "D", a: "s7",  b: "s8"  },
-    //   { id: "E", a: "s9",  b: "s10" }
+      { id: "p12", a: "fri15_4", b: "mon18_1" },
+
     ];
 
+    const REQUIRED_COMBOS = 4;
     const SWAP_HYSTERESIS_PX = 8;
     const SWAP_COOLDOWN_MS = 70;
 
@@ -577,11 +561,17 @@
 
       visibleCombos = sortCombosPreservingOrder(possible, previousOrder);
 
-      if (visibleCombos.length === 0) {
-        selectionInfo.textContent = "Please try to select more slots.";
+      const n = visibleCombos.length;
+      continueBtn.textContent = "Continue";
+
+      if (n === 0) {
+        selectionInfo.textContent = "No matching pairs found yet. Please select more slots.";
         continueBtn.disabled = true;
+      } else if (n < REQUIRED_COMBOS) {
+        selectionInfo.textContent = `${n} matching pair${n === 1 ? "" : "s"} found. Please select more slots if you can. Continue if there are no more slots are possible for you.`;
+        continueBtn.disabled = false;
       } else {
-        selectionInfo.textContent = "";
+        selectionInfo.textContent = `${n} matching pairs found.`;
         continueBtn.disabled = false;
       }
 
